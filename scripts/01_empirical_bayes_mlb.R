@@ -15,8 +15,7 @@ career_stats <- Batting %>%
   anti_join(Pitching, by = "playerID") %>% # filters anyone who appears in the Lahman::Pitching data
   group_by(playerID) %>% 
   summarise(H = sum(H), 
-            AB = sum(AB),
-            n = sum(AB)) %>% 
+            AB = sum(AB)) %>% 
   mutate(average = H / AB)
 
 career_stats
@@ -158,3 +157,106 @@ ggsave("eb_shrinkage_10.png",
        path = "output",
        width = 8, 
        height = 5) 
+
+# Now we will work on understanding version control using Github by expanding on this project. 
+# When we push this script, you can see that I added these changes. This helps you (and collaborators and people who find your repo)
+# keep track of everything! 
+
+# To continue this example, let's think about our problem. Above we used empirical Bayes 
+# to improve our estimation of each player's batting average. However, if we learn more about baseball 
+# we learn something important: When players are better, they are given more chances to bat. 
+
+# In our above code, we gave all players the same prior. However, now we will use a method called 
+# a beta-binomal regression (don't worry about this, you don't need to understand this).
+# This allows us to model this same problem, but now all batters have their own prior. 
+library(tidyverse)
+library(Lahman)
+
+# Let's start by looking at an example to demonstrate this. 
+career %>% 
+  filter(AB >= 20) %>% 
+  ggplot(aes(AB, average)) + 
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  scale_x_log10() +
+  theme_minimal() 
+
+# There is a linear relationship! Yes, batters with low ABs have a higher variance. 
+# However, as we can see, as ABs increase so does batting average. Managers give more 
+# ABs to better hitters! 
+
+pitchers <- Pitching %>% 
+  group_by(playerID) %>% 
+  summarise(gamesPitched = sum(G)) %>% 
+  filter(gamesPitched > 3)
+
+# We're using the career, career_stats, and career_filtered we used above 
+
+# Estimate hyperparameters
+m <- fitdistrplus::fitdist(
+  data = career_filtered$average,
+  distr = "beta",
+  method = "mle",
+  start = list(shape1 = 1, shape2 = 10
+))
+
+alpha0 <- m$estimate[1]
+beta0 <- m$estimate[2]
+prior_mu <- alpha0 / (alpha0 + beta0)
+
+# Create new career_eb  
+career_eb <- career %>% 
+  mutate(eb_estimate = (H + alpha0) / (AB + alpha0 + beta0)) %>% 
+  mutate(alpha1 = H + alpha0,
+         beta1 = AB - H + beta0) %>% 
+  arrange(desc(eb_estimate))
+
+# So let's try to resolve this problem by modeling it out 
+# install.packages("gamlss")
+library(gamlss)
+
+fit <- gamlss(cbind(H, AB - H) ~ log(AB), 
+              data = career_eb, 
+              family = BB(mu.link = "identity"))
+
+mu <- fitted(fit, parameter = "mu")
+sigma <- fitted(fit, parameter = "sigma")
+
+head(mu)
+head(sigma)
+
+# Now we can calculate our parameters for each player rathern than pooling them all together! 
+career_eb_wAB <- career_eb %>% 
+  select(name, H, AB, original_eb = eb_estimate) %>% 
+  mutate(
+    mu = mu, 
+    alpha0 = mu / sigma,
+    beta0 = (1 - mu) / sigma,
+    alpha1 = alpha0 + H,
+    beta1 = beta0 + AB - H,
+    new_eb = alpha1 / (alpha1 + beta1)
+  )
+
+career_eb_wAB %>% 
+  ggplot(aes(original_eb, new_eb, color = AB)) +
+  geom_point() + 
+  geom_abline(color = "#D55E00") +
+  scale_color_continuous(trans = "log", breaks = 10 ^ (0:4)) +
+  labs(
+    title = "Does this change our estimates?",
+    x = "Original",
+    y = "New"
+  )
+
+# Finally, let's compare the estimation methods
+career_eb_wAB %>%
+  filter(AB >= 10) %>%
+  mutate(raw = H / AB) %>%
+  gather(type, value, raw, original_eb, new_eb) %>%
+  mutate(mu = ifelse(type == "original_eb", prior_mu,
+                     ifelse(type == "new_eb", mu, NA))) %>%
+  ggplot(aes(AB, value)) +
+  geom_point() +
+  geom_line(aes(y = mu), color = "#009E73") +
+  scale_x_log10() +
+  facet_wrap(~type) 
