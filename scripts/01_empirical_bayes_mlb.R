@@ -246,7 +246,8 @@ career_eb_wAB %>%
     title = "Does this change our estimates?",
     x = "Original",
     y = "New"
-  )
+  ) +
+  theme_minimal()
 
 # Finally, let's compare the estimation methods
 career_eb_wAB %>%
@@ -259,4 +260,5 @@ career_eb_wAB %>%
   geom_point() +
   geom_line(aes(y = mu), color = "#009E73") +
   scale_x_log10() +
-  facet_wrap(~type) 
+  facet_wrap(~type) +
+  theme_minimal()
