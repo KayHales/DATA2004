@@ -7,7 +7,7 @@ library(tidyverse)
 
 # Our data downloaded to our computer and not our project so we 
 # will need to first move it to our project. 
-
+ 
 getwd() # our working directory. helpful to not use local paths 
 list.files() # let's us see our folders and files in our wd
 
