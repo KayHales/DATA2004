@@ -52,7 +52,7 @@ Two questions:
 1.  What are the dimensions of the `penguins` dataset?
 2.  What does one row of `penguins` seem to represent?
 
-## Getting reacquainted with the basic verbs 
+## Getting reacquainted with the basic verbs
 
 ### Select
 
@@ -72,7 +72,7 @@ Using the original `penguins` dataframe, find all penguins with a body mass grea
 
 And then use `glimpse()` to look at your results for all of the above.
 
-### Creating new variables 
+### Creating new variables
 
 Create a new dataframe with a variabled called `body_mass_kg` that converts each penguin's body mass in kilograms.
 
