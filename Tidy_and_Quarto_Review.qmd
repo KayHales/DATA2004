@@ -1,8 +1,10 @@
 ---
 title: "DATA2004 Refresher"
 subtitle: "Tidyverse + Quarto Review"
-author: "[Your Name]"
-format: html
+author: "Kay Hales"
+format:
+  html:
+    embed-resources: true
 editor: visual
 ---
 
@@ -76,7 +78,12 @@ And then use `glimpse()` to look at your results for all of the above.
 
 Create a new dataframe with a variabled called `body_mass_kg` that converts each penguin's body mass in kilograms.
 
-# 
+```{r}
+penguins_kg <- penguins |> 
+  mutate(
+    body_mass_kg = body_mass_g/1000
+  )
+```
 
 ## Summaries
 
@@ -91,6 +98,18 @@ First, find out the different values in `species` and then select any three (sin
 
 *note:* some could have missing values. how should you deal with that?
 
+```{r}
+penguins |> 
+  group_by(species) |> 
+  summarise(
+    n = n(),
+    avg_mass = mean(body_mass_g, na.rm = TRUE),
+    mean_mass = median(body_mass_g, na.rm = TRUE),
+    mean_flip = mean(flipper_length_mm, na.rm = TRUE)
+  ) |> 
+  ungroup()
+```
+
 ## More independent review
 
 From here on, I will tell you the result I want and then it is up to you to figure it out.
@@ -98,6 +117,16 @@ From here on, I will tell you the result I want and then it is up to you to figu
 ### A)
 
 Among **female** penguins, which species has the greatest average body mass?
+
+```{r}
+penguins |> 
+  filter(sex == "female") |> 
+  group_by(species) |> 
+  summarise(
+    avg_mass = mean(body_mass_g, na.rm = TRUE)
+  ) |> 
+  arrange(desc(avg_mass))
+```
 
 ### B)
 
@@ -108,6 +137,17 @@ For each species and island combination, determine
 
 Then arrange the resulting table from **greatest to smallest** mean flipper length
 
+```{r}
+penguins |> 
+  group_by(species, island) |> 
+  summarise(
+    n = n(),
+    avg_flip = mean(flipper_length_mm, na.rm = TRUE)
+  ) |> 
+  ungroup() |> 
+  arrange(desc(avg_flip))
+```
+
 ### C)
 
 Which individual penguins have the five greatest recorded body mass? Your result should contain only:
@@ -117,16 +157,70 @@ Which individual penguins have the five greatest recorded body mass? Your result
 3.  sex
 4.  body mass
 
+```{r}
+penguins |> 
+  select(
+    species, island, sex, body_mass_g
+  ) |> 
+  arrange(desc(body_mass_g)) |> 
+  slice_head(n = 5)
+```
+
 ## Viz review
 
 1.  Create a visualization that compares the **distribution of body mass across species.**
     1.  Give your plot a meaningful title and label your axes.
-2.  Create a scatterplot showing the relationship between flipper length and body mass.
+
+```{r}
+penguins |> 
+  ggplot(aes(x = species, y = body_mass_g, color = species)) +
+  geom_boxplot() +
+  labs(title = "Penguin Body Mass by Species",
+       x = "Species",
+       y = "Body Mass")
+```
+
+1.  Create a scatterplot showing the relationship between flipper length and body mass.
     1.  Create a new scatterplot for this relationship, but differentiate species by any aesthetic of your choosing.
     2.  Create a new scatterplot for this relationship, but only include **three** species and then facet to examine the relationship across three species separately.
+
+```{r}
+penguins |> 
+  ggplot(aes(x = flipper_length_mm, y = body_mass_g, color = species)) +
+  geom_point()
+```
+
+```{r}
+penguins |> 
+  ggplot(aes(x = flipper_length_mm, y = body_mass_g)) +
+  geom_point() +
+  facet_wrap(~ species)
+```
 
 ## Put it together
 
 Hopefully now you've done enough of the review to get a completely open-ended question. For your last question, here's what id like to see
 
 Do male and female penguins appear to differ in body mass, and does that difference look similar across species?
+
+```{r}
+penguins |> 
+  filter(!is.na(sex)) |> 
+  group_by(species, sex) |> 
+  summarise(
+    n = n(),
+    mean_mass = mean(body_mass_g, na.rm = TRUE)
+  ) |> 
+  ungroup()
+```
+
+```{r}
+penguins |> 
+  filter(!is.na(sex)) |> 
+  ggplot(aes(x = sex, y = body_mass_g, color = sex)) +
+  geom_boxplot() +
+  facet_wrap(~ species) +
+  labs(title = "Boxplot of Penguin Body Mass by Sex",
+       x = "Sex",
+       y = "Body Mass")
+```
