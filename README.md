@@ -35,8 +35,8 @@ output/      figures and tables produced by scripts/
 Office: BSC 109
 Office hours: 
 
-Monday: 2-3pm
-Tuesday: 1-2pm
-Wednesday: 10:30-11:30am
-Thursday: 10-11am
-Friday: 2-3pm
+- Monday: 2-3pm
+- Tuesday: 1-2pm
+- Wednesday: 10:30-11:30am
+- Thursday: 10-11am
+- Friday: 2-3pm
