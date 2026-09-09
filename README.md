@@ -1,4 +1,4 @@
-# DATA2004: [Data Acquisition, Wrangling, and Visualization]
+# DATA2004: Data Acquisition, Wrangling, and Visualization
  
 Course materials for DATA2004 at Transylvania University — Fall 2026. 
  
