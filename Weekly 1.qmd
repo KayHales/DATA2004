@@ -1,0 +1,157 @@
+---
+title: "Weekly 1: Formula 1 Data"
+author: "[Name]"
+format:
+  html:
+    embed-resources: true
+editor: visual
+---
+
+## Overview
+
+You want to know whether qualifying performance is related to finishing performance in Formula 1.
+
+That turns out to be two problems, not one. Qualifying results and race results live in separate tables, so you have to connect them. And the qualifying data do not cover the whole history of the results data, so connecting them quietly decides which races your answer is about.
+
+Your job is to work out what can be connected, what cannot, and what that means for the scope of the question you started with.
+
+A few things:
+
+1.  Add `#| echo: false` to your code blocks. It will make your life and mine easier. I put it in the first two to remind you. After that you'll need to insert your own.
+2.  Use a new block when you move to a new task. Don't put everything in one.
+3.  Code goes in the blocks. **Answers go outside them**, in the document, as prose. A comment inside a code chunk is not an answer.
+4.  Data dictionaries for each CSV are on Canvas.
+
+## Your data
+
+You will use three tables:
+
+- `results.csv`
+- `qualifying.csv`
+- `races.csv`
+
+Import the three files. You'll need to tell R to treat `""`, `"NA"`, and `"\\N"` as NA values. Run `?read_csv` in your console to see how the `na = c()` argument works.
+
+```{r}
+#| warning: false
+
+```
+
+Inspect your tables.
+
+```{r}
+#| warning: false
+
+```
+
+## Before moving forward
+
+For each table, answer:
+
+> What does one row represent?
+
+> What variable uniquely identifies one row?
+
+> What variable(s) connect this table to the other tables?
+
+## What is the grain?
+
+You are ultimately interested in **qualifying performances**, so your final table needs to preserve the grain that lets you make that comparison.
+
+> Which table should establish the grain of your final analytic table? Why?
+
+Now build smaller working tables with only the variables you need.
+
+Your qualifying table should include:
+
+1.  `qualifyId`
+2.  `raceId`
+3.  `driverId`
+4.  `position`
+
+Your results table should include:
+
+1.  `resultId`
+2.  `raceId`
+3.  `driverId`
+4.  `positionOrder`
+
+Your races table should include:
+
+1.  `raceId`
+2.  `year`
+3.  `name`
+
+Verify your primary keys before you use them. For each table, check whether the identifying variable is actually unique, and whether any of your joining variables are missing.
+
+> Did every key check pass? What would it have meant for the joins ahead if one hadn't?
+
+## Connect qualifying and race results
+
+> Add finishing order to each qualifying record, wherever a matching race result exists.
+
+A note before you write it: `join_by()` takes more than one variable. Think about what it takes to pin down a single result. Is knowing the driver enough? Two drivers can finish third in different races. Two results can come from the same race. What combination actually identifies one driver's result in one race?
+
+Answer these **before** you run the join:
+
+> What should one row represent afterward?
+
+> Should the number of qualifying rows change?
+
+Now actually do the join.
+
+> Use `relationship =` to state the cardinality you expect. Did R agree with you? If it didn't, what does that tell you about the data?
+
+> Do any qualifying records have no matching race result? How many?
+
+Then add the race year and race name to your joined table.
+
+> Should that join change your row count?
+
+## Investigate the historical coverage
+
+So far you've worked outward from the qualifying records, it's where you started and attached results to. That answers "what happened to the drivers we have qualifying data for."
+
+> But how much of Formula 1's race results history can actually be connected to qualifying data?
+
+You can't answer this by comparing row counts. The two tables have different grains and different numbers of rows. What you can compare is **which race-driver combinations appear in each one**.
+
+Build a table containing every distinct `raceId`–`driverId` combination in `results`. Then build the same thing from `qualifying`.
+
+> What does one row represent in each of these tables?
+
+> Why `distinct()`? What would you be counting if you left it out?
+
+Now find the combinations that appear in the results data but *not* in the qualifying data.
+
+> How many are there?
+
+> What proportion of all result combinations is that?
+
+Attach the race year to those unmatched combinations, then plot the count of unmatched combinations by year.
+
+> Are the unmatched records spread evenly across Formula 1 history?
+
+> Roughly when does substantial qualifying coverage begin?
+
+Do not speculate about *why* particular records are missing unless the documentation supports it. Just describe it.
+
+## The payoff
+
+Using only the records where you have both a qualifying position and a finishing order, make a plot showing the relationship between the two.
+
+> Describe what you see in two or three sentences.
+
+## What this means for your question
+
+You opened by asking whether qualifying performance is related to finishing performance. You now know something about what that question can actually be asked of.
+
+> If you compare qualifying position to finishing order using only records that have both, what population are you actually describing?
+
+## Disclosure appendix
+
+> What did you try first? Include the code you wrote and the actual error message, or a clear description of the problem if there was no error.
+
+> If you used an AI system: the exact prompt, exactly what it returned, what it got wrong or left unclear, and what you changed.
+
+> If you didn't use one, say so.
