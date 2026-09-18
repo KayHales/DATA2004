@@ -6,7 +6,7 @@ library(tidyverse)
 # inspect 
 
 # create chocolate from chocolate_raw with only these columns: review_date, company_location,
-# cocoa_percent, rating, cocoa_percent
+# cocoa_percent, rating
 
 # filter for France and only ratings greater than or equal to 3.5. 
 
@@ -39,7 +39,7 @@ chocolate <- chocolate |>
   ) 
 mean(chocolate$cocoa_num)
 
-# create a grouped cummary of company_location that gives us
+# create a grouped summary of company_location that gives us
 # the number of times that country appears
 # mean ratings 
 # median ratings

@@ -200,7 +200,8 @@ persons_core |>
 ## Use anti_join() to look at whatever didn't match.
 ## Count records by BOROUGH, PERSON_TYPE, and PERSON_INJURY.
 person_crashes <- persons_core |>
-  left_join(crashes_core, join_by(COLLISION_ID))
+  left_join(crashes_core, join_by(COLLISION_ID),
+            relationship = "many-to-one")
 
 nrow(persons_core)
 nrow(person_crashes)
@@ -242,5 +243,5 @@ person_crashes |>
 # When we have our original df, why is out number 54,030 but the join gave us 250,000?
 # When we join, the columns are at the grain of the left side of the join, not the original! 
 
-
+ 
 
