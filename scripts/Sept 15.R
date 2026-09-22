@@ -12,9 +12,7 @@ glimpse(fishing)
 
 fishing %>%
   ggplot(aes(x = "what would go here?", y = "what would go here?"))
-fishing |> 
-  ggplot(aes(x = Year, y = `Grand Total`)) +
-  geom_line()
+
 
 # What goes on the y-axis?
 
