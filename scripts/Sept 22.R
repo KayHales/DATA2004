@@ -33,10 +33,34 @@ glimpse(persons_core)
 
 ## what are our mutating joins? what's the difference? 
 
-## let's check out the homework briefly. 
+## let's check out the homework briefly.
 
 # Which crashes involved at least one bicyclist? I want one row per crash. 
 # we'll start by making a table of just the bicyclist person records. how many are there?
+
+bicyclists <- persons_core |> 
+  filter(PERSON_TYPE == "Bicyclist")
+
+nrow(bicyclists)
+n_distinct(bicyclists$COLLISION_ID)
+
+crashes_bike <- crashes_core |> 
+  left_join(persons_core, join_by(COLLISION_ID))
+
+crashes_bike <- crashes_bike |> 
+  filter(PERSON_TYPE == "Bicyclist")
+
+glimpse(crashes_bike)
+
+crashes_bike <- crashes_core |> 
+  left_join(bicyclists, join_by(COLLISION_ID))
+glimpse(crashes_bike)
+
+
+
+
+
+
 
 # does that number answer our question? why not? 
 
@@ -48,23 +72,61 @@ glimpse(persons_core)
 # we're joining persons to the crashes grain, so what does one row represent? 
 
 # is it every crash involving a bicyclist? let's check out the first 10 rows.  
+crashes_bike |> 
+  slice_head(n = 10)
 
 # our mutating join adds columns so it has changed our grain, but we don't want it to right now. 
 
 # so we'll need to use *filtering* joins
 # we got exposed to one filtering join already: anti_join(). 
 # which filtering join that will keep matches instead of non-matches?
+bike_crashes <- crashes_core |> 
+  semi_join(bicyclists, join_by(COLLISION_ID))
+nrow(bike_crashes)
+n_distinct(bike_crashes$COLLISION_ID)
+
+glimpse(bike_crashes)
 
 # this doesn't add more columns, so we're not working with crash-bicyclists combination
 
 # now do anti_join for crashes that do not involve a bicyclist. 
+no_bike_crashes <- crashes_core |> 
+  anti_join(bicyclists, join_by(COLLISION_ID))
+nrow(no_bike_crashes)
+n_distinct(no_bike_crashes$COLLISION_ID)
 
 # what should the nrow() of each of your filtering joins dataframes be?
+nrow(bike_crashes) + nrow(no_bike_crashes)
+
+nrow(bike_crashes) + nrow(no_bike_crashes) == nrow(crashes_core)
 
 # now it's y'all's turn: identify crashes that involve at least one pedestrian, 
 # one row per crash. 
+persons_core |> 
+  slice_head(n = 10)
+
+unique(persons_core$PERSON_TYPE)
+
+pedestrian <- persons_core |> 
+  filter(PERSON_TYPE == "Pedestrian")
+
+pedestrian_crashes <- crashes_core |> 
+  semi_join(pedestrian, join_by(COLLISION_ID))
+
 
 ## after that, narrow it down. crashes where at least one pedestrian was recorded as female. 
 
 # back together
 ## where did you put the PERSON_SEX condition? why?
+pedestrian_crashes |> # no person_sex column
+  filter(PERSON_SEX == "F")
+
+pedestrian_f <- pedestrian |> 
+  filter(PERSON_SEX == "F")
+
+glimpse(pedestrian_f)
+
+female_pedestrian_crash <- crashes_core |> 
+  semi_join(pedestrian_f, join_by(COLLISION_ID))
+
+glimpse(female_pedestrian_crash)

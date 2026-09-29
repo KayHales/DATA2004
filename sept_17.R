@@ -89,6 +89,8 @@ n_distinct(persons_core$COLLISION_ID)
 # We'll start by doing a join that keeps observations where both cases exist. 
 # Can anyone remember which join this is? 
 
+
+
 # Use the console if you don't remember. 
 
 # inner - joins matches across both. drops the ones that don't match 
@@ -99,12 +101,14 @@ crashes_inner <- crashes_core |>
 
 glimpse(crashes_inner)
 
+crashes_left <- crashes_core |> 
+  left_join(persons_core, join_by(COLLISION_ID))
+
+glimpse(crashes_left)
+
+
+
 # one row represents one crash record with person-level crash information. 
-
-persons_inner <- persons_core |> 
-  inner_join(crashes_core, join_by(COLLISION_ID))
-
-glimpse(persons_inner)
 
 # one row represents one person record with crash-level information. 
 

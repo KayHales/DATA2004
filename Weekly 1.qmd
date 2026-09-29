@@ -59,21 +59,15 @@ For each table, answer:
 
 > What does one row represent?
 
-results: One row represents one driver's race result in one race. 
-qualifying: One row represents one driver's qualifying performance in one race. 
-races: One row represents one race. 
+results: One row represents one driver's race result in one race. qualifying: One row represents one driver's qualifying performance in one race. races: One row represents one race.
 
 > What variable uniquely identifies one row?
 
-results: resultId
-qualifying: qualifyId 
-races: raceId
+results: resultId qualifying: qualifyId races: raceId
 
 > What variable(s) connect this table to the other tables?
 
-results: raceId and driverId
-qualifying: driverId
-races: raceId 
+results: raceId and driverId qualifying: driverId races: raceId
 
 ## What is the grain?
 
@@ -81,7 +75,7 @@ You are ultimately interested in **qualifying performances**, so your final tabl
 
 > Which table should establish the grain of your final analytic table? Why?
 
-Qualifying should establish the grain because I am interested in learning about the qualifying result specifically. 
+Qualifying should establish the grain because I am interested in learning about the qualifying result specifically.
 
 Now build smaller working tables with only the variables you need.
 
@@ -152,7 +146,7 @@ sum(is.na(qualifying_core$raceId))
 sum(is.na(qualifying_core$driverId))
 ```
 
-None are missing and every check passed. 
+None are missing and every check passed.
 
 ## Connect qualifying and race results
 
@@ -164,11 +158,11 @@ Answer these **before** you run the join:
 
 > What should one row represent afterward?
 
-One row should represent one driver's qualifying performance in one race, with their race finishing order attached. 
+One row should represent one driver's qualifying performance in one race, with their race finishing order attached.
 
 > Should the number of qualifying rows change?
 
-No. This is a one-to-one join. 
+**No. We mostly understood that it shouldn't, but why not?**
 
 Now actually do the join.
 
@@ -189,6 +183,11 @@ qualifying_results <- qualifying_core |>
             join_by(raceId, driverId),
             relationship = "one-to-one")
 
+sum(is.na(qualifying_results))
+qualifying_results %>% 
+  filter(raceId == is.na(raceId))
+
+
 nrow(qualifying_core)
 nrow(qualifying_results)
 ```
@@ -197,7 +196,7 @@ Then add the race year and race name to your joined table.
 
 > Should that join change your row count?
 
-No. This is a many-to-one join and there are no missing keys. 
+No. This is a many-to-one join and there are no missing keys.
 
 ```{r}
 #| warning: false
@@ -227,6 +226,8 @@ qualifying_key <- qualifying_core |>
 
 > What does one row represent in each of these tables?
 
+A distinct combiantion of drivers in races. A distinct
+
 > Why `distinct()`? What would you be counting if you left it out?
 
 Now find the combinations that appear in the results data but *not* in the qualifying data.
@@ -241,20 +242,17 @@ results_without_qualifying <- results_key |>
 nrow(results_without_qualifying)
 ```
 
-
 > How many are there?
 
 ```{r}
 glimpse(results_without_qualifying)
 ```
 
-
 > What proportion of all result combinations is that?
 
 ```{r}
 nrow(results_without_qualifying) / nrow(results_key)
 ```
-
 
 Attach the race year to those unmatched combinations, then plot the count of unmatched combinations by year.
 
@@ -263,21 +261,14 @@ unmatched_with_year <- results_without_qualifying |>
   left_join(races_core, join_by(raceId),
             relationship = "many-to-one")
 
-unmatched_by_year <- unmatched_with_year |> 
-  group_by(year) |> 
-  summarise(
-    unmatched = n()
-  )
-
-unmatched_by_year |> 
-  ggplot(aes(x = year, y = unmatched)) +
-  geom_col() +
+unmatched_with_year |> 
+  ggplot(aes(x = year)) +
+  geom_bar() +
   labs(title = "Unmatched historal race results in Formula 1",
        subtitle = "When did race results start becoming connected to qualifying results?",
        x = "year",
        y = "# of unmatched records")
 ```
-
 
 > Are the unmatched records spread evenly across Formula 1 history?
 
@@ -311,7 +302,6 @@ qualifying_results |>
        size = "records")
   
 ```
-
 
 > Describe what you see in two or three sentences.
 
