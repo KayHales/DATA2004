@@ -61,8 +61,8 @@ coffee %>%
   count(producer, sort = TRUE)
 
 n_distinct(coffee$producer)
-
 sum(is.na(coffee$producer))
+
 ```
 
 > How many distinct values are there?
@@ -179,6 +179,7 @@ coffee_clean |>
   distinct(producer_clean) |> 
   arrange(producer_clean) |> 
   print(n = Inf)
+
 ```
 
 > Find at least **three** pairs of labels that differ only in punctuation.

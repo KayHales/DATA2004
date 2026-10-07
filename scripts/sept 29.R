@@ -153,6 +153,10 @@ engineer_candidates |>
   filter(str_detect(occupation, "\\d")) |> 
   mutate(seniority_level = str_extract(occupation, "\\d+")) # why + here? 
 
+engineer_candidates |> 
+  select(occupation) |> 
+  filter(str_detect(occupation))
+
 # it worked, but do you think we got all of seniority? 
 # how would you want to look for more? 
 
