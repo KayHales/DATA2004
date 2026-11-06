@@ -7,6 +7,11 @@ library(tidyverse)
 # downloaded the 2024 Public Libraries Survey and wants to compare
 # library systems on visits, circulation, and programs.
 
+libraries |> 
+  select(FSCSKEY)
+
+libraries$FSCSKEY
+
 # your supervisor wants an audit before anyone analyzes anything.
 
 # nothing today is new. you've done every piece of this already.
@@ -22,7 +27,22 @@ libraries <- read_csv(
 
 glimpse(libraries)
 
+libraries |> 
+  count(FSCSKEY) |> 
+  filter(n > 1)
+
+libraries$F_VISITS[1]
+
+libraries |> 
+  select(F_VISITS) |> 
+  slice_head(n = 10)
+
 # one row is one one library system. 
+
+libraries |>
+  filter(VISITS < 0) |>
+  count(VISITS, F_VISITS)
+
 
 # the download also has an "outlet" file. it has more rows.
 # why would it? (the user's guide will tell you.)

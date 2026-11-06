@@ -1,0 +1,248 @@
+---
+title: "Weekly 6 (Review): How Many People, and Where?"
+author: "Kay Hales"
+format:
+  html:
+    embed-resources: true
+editor: visual
+---
+
+## Overview
+
+This weekly is review. Nothing in it is new. It puts the last few weeks together on one dataset: requests, reading structure, unnesting and hoisting, strings and regex, and joins.
+
+The World Bank has a free API with data on every country in the world. You're going to answer a question that sounds simple:
+
+**Which countries had the most people in 2023, and how is the world's population split up by region and income?**
+
+On the way, you'll find out that "every country in the world" isn't quite what the World Bank sends you.
+
+A few things:
+
+1.  Add `#| echo: false` to your code blocks.
+2.  Use a new block when you move to a new task.
+3.  Code goes in the blocks. **Answers go outside them**, as prose. A comment inside a code chunk is not an answer.
+4.  Save each raw response to a file **once**, then work from the file. After it's saved, add `#| eval: false` to the block that sends the request.
+5.  Look at nested data one level at a time: `str(x, max.level = 1)`. Never print a whole response.
+
+Due \[date\] at 8pm.
+
+# Part 1: Ask
+
+## Read the documentation first
+
+The World Bank's documentation for building a request is here: <https://datahelpdesk.worldbank.org/knowledgebase/articles/898581-api-basic-call-structures>
+
+> What format does the API send back if you don't ask for one? How do you ask for JSON?
+
+> How many results do you get per page if you don't say? How do you ask for more?
+
+## Make the request
+
+Population has the indicator code `SP.POP.TOTL`. The endpoint for one indicator, for every country, is:
+
+`https://api.worldbank.org/v2/country/all/indicator/SP.POP.TOTL`
+
+Build a request with `httr2` for **2023 only**, in **JSON**. Don't set the number per page yet. Look at it with `req_dry_run()`, then send it.
+
+```{r}
+#| warning: false
+
+library(tidyverse)
+library(httr2)
+pop_req <- request("https://api.worldbank.org/v2/country/all/indicator/SP.POP.TOTL") |>
+  req_url_query(date = 2023, format = "json")
+
+pop_req |> req_dry_run()
+pop_resp <- pop_req |> req_perform()
+resp_status(pop_resp)
+
+```
+
+> What status did you get?
+
+Now look at the first element of what came back.
+
+```{r}
+#| warning: false
+
+```
+
+> How many records exist in total? How many did you get? Is a 200 enough to know you got everything?
+
+## Get all of it, and save it
+
+Fix the request so you get every record in one response. Save it to `data/raw/wb_population_2023.json`, then read it back with `jsonlite::read_json()`.
+
+```{r}
+#| warning: false
+
+```
+
+```{r}
+#| warning: false
+
+```
+
+> Fill this in:
+>
+> - URL:
+> - Date and time requested:
+> - Status:
+> - Records returned / records that exist:
+> - One default that would have caught you:
+
+# Part 2: Read the structure
+
+```{r}
+#| warning: false
+
+```
+
+> Look at the top level with `str(..., max.level = 1)`. How many parts are there? Do they have names? Is the top level a `{ }` or a `[ ]`? How do you know?
+
+> Which part holds the pagination information, and which holds the data? How would you get to each one in R?
+
+Now look at **one** record, one level deep.
+
+```{r}
+#| warning: false
+
+```
+
+> Which fields are single values? Which are `{ }` with their own parts inside? What's inside `country`?
+
+# Part 3: Make it a table
+
+Create a tibble called `pop` with one row per record and these columns:
+
+- `iso3` (`countryiso3code`)
+- `country` (the country's name, inside `country`)
+- `year` (`date`)
+- `population` (`value`)
+
+```{r}
+#| warning: false
+
+```
+
+> Did you use `unnest_wider()`, `hoist()`, or both? Why that choice?
+
+> How many rows? Does it match the total from Part 1? What is one row?
+
+> Are any populations `NA`? Which places? What was the value in the raw JSON?
+
+> Is `population` a number? Is `year`? Should they be?
+
+# Part 4: Are these all countries?
+
+Look through the `country` column.
+
+```{r}
+#| warning: false
+
+```
+
+> Name five rows that are not countries. What are they?
+
+> How many rows have an empty `iso3`? Are they `NA` or something else? How did you check?
+
+A classmate tries to remove the non-countries with a regex. Find every name that contains `"income"`, `"&"`, or `"and"`.
+
+```{r}
+#| warning: false
+
+```
+
+> Did that catch every non-country? Did it catch any real countries by mistake? Name them.
+
+> Improve the pattern as much as you can. Can a pattern ever do this job reliably? Why or why not?
+
+# Part 5: Connect a second table
+
+The World Bank also has an endpoint that describes each place: `https://api.worldbank.org/v2/country`. Request **all** of them in JSON, save the response, and read it back.
+
+```{r}
+#| warning: false
+
+```
+
+> How many places are in this table? Is that the same number as in `pop`? Why might they differ?
+
+Create a tibble called `places` with `iso3` (`id`), `region` (inside `region`), and `income` (inside `incomeLevel`).
+
+```{r}
+#| warning: false
+
+```
+
+> Try to keep only the places in Latin America & Caribbean with `filter(region == "Latin America & Caribbean")`. How many rows do you get? Now look very closely at the text of each region name (hint: `str_length()`). What's going on, and how do you fix it?
+
+```{r}
+#| warning: false
+
+```
+
+## Mutating join
+
+Add `region` and `income` to `pop`.
+
+```{r}
+#| warning: false
+
+```
+
+> Which key did you join on? Why not the country name, or the two-letter id inside `country`?
+
+> How many rows before and after the join? Should it change?
+
+> Which rows got `NA` for `region`? Why didn't they match?
+
+## Filtering joins
+
+In `places`, the non-countries have `region` equal to `"Aggregates"`.
+
+Make a table of only the real countries in `pop`, using a filtering join. Then make a table of everything you threw out.
+
+```{r}
+#| warning: false
+
+```
+
+> How many countries? How many places did you throw out? Does anything in the thrown-out list surprise you?
+
+> Compare this to your regex in Part 4. Which would you trust, and why?
+
+# Part 6: Answer the question
+
+```{r}
+#| warning: false
+
+```
+
+> What were the five most populous countries in 2023?
+
+> What is the total population by region? By income level? Make one of these a plot.
+
+> The data includes a row called "World." Compare its population to the sum of your real countries. Are they the same? Why might they not be?
+
+> If you had **not** removed the aggregates, what would your regional totals have been? How wrong, and in which direction?
+
+# Bringing it together
+
+A classmate's project uses World Bank data. They downloaded a table, summed a column, and wrote "the world's population is tens of billions of people."
+
+Write them a short note, roughly 200 words, that:
+
+- explains what probably went wrong
+- tells them how to check for it
+- tells them how to fix it, and why a join is safer than a pattern
+- names one default in the API that could have caught them
+
+# Disclosure appendix
+
+> What did you try first? Include the code you wrote and the actual error message, or a clear description of the problem if there was no error.
+
+> If you used an AI system: the exact prompt, exactly what it returned, what it got wrong or left unclear, and what you changed.
+
+> If you didn't use one, say so.
